@@ -1,5 +1,6 @@
 from django import template
 from blog import models
+from django.db.models.aggregates import Count
 
 register = template.Library()
 
@@ -14,5 +15,8 @@ def archives():
 
 @register.simple_tag
 def get_categories():
-    return models.Category.objects.all()
+    # Count 计算分类下的文章数，其接受的参数为需要计数的模型的名称
+    # 除了返回数据库中全部 Category 的记录, 还会计算Post的行数并保存在num_posts
+    # 使用 filter 方法把 num_posts 的值小于 1 的分类过滤掉
+    return models.Category.objects.annotate(num_posts=Count('post')).filter(num_posts__gt=0)
 
