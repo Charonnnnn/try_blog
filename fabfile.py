@@ -6,10 +6,10 @@ GIT_REPO = "https://github.com/Charonnnnn/try_blog.git"
 env.user = 'charon'
 env.password = 'a'
 
-# 填写你自己的主机对应的域名
+# domain name
 env.hosts = ['demo.charon.me']
 
-# 一般情况下为 22 端口
+# normally is port 22
 env.port = '22'
 
 
