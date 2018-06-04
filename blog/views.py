@@ -2,9 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from blog import models
 # Create your views here.
 import markdown
+from django.utils.text import slugify
+from markdown.extensions.toc import TocExtension
+
 from comments.forms import CommentForm
 
-from django.views.generic import ListView
+from django.views.generic import ListView,DetailView
 class IndexView(ListView):
     model = models.Post
     template_name = 'blog/index.html'
@@ -144,28 +147,82 @@ class IndexView(ListView):
 
         return data
 
-def detail(request, pk):
-    post = get_object_or_404(models.Post, pk=pk)
-    # 导入的 get_object_or_404 方法，其作用就是当传入的 pk 对应的 Post 在数据库存在时，就返回对应的 post，如果不存在，就给用户返回一个 404 错误，表明用户请求的文章不存在
-    # print(post,'!!!!!!!')
+class PostDetailView(DetailView):
+    model = models.Post
+    template_name = 'blog/detail.html'
+    context_object_name = 'post'
 
-    # 阅读量 +1
-    post.increase_views()
+    def get(self, request, *args, **kwargs):
+        # 覆写 get 方法的目的是因为每当文章被访问一次，就得将文章阅读量 +1
+        # get 方法返回的是一个 HttpResponse 实例
+        # 之所以需要先调用父类的 get 方法，是因为只有当 get 方法被调用后，
+        # 才有 self.object 属性，其值为 Post 模型实例，即被访问的文章 post
+        response = super(PostDetailView, self).get(request, *args, **kwargs)
 
-    # 把 Markdown 文本转为 HTML 文本再传递给模板
-    # pip install markdown | pip install pygments
-    post.body = markdown.markdown(post.body, extensions=[
-        'markdown.extensions.extra',
-        'markdown.extensions.codehilite',
-        'markdown.extensions.toc',
-    ])
-    # https://www.jianshu.com/p/1e402922ee32/
-    # https://www.appinn.com/markdown/
-    form  = CommentForm()
-    comment_list = post.comment_set.all()
-    context = {'post':post, 'form':form, 'comment_list':comment_list}
+        # 将文章阅读量 +1
+        # 注意 self.object 的值就是被访问的文章 post
+        self.object.increase_views()
 
-    return render(request, 'blog/detail.html', context=context)
+        # 视图必须返回一个 HttpResponse 对象
+        return response
+
+    def get_object(self, queryset=None):
+        # 覆写 get_object 方法的目的是因为需要对 post 的 body 值进行渲染
+        post = super(PostDetailView, self).get_object(queryset=None)
+        # markdown.markdown() 方法把 post.body 中的 Markdown 文本渲染成了 HTML 文本
+        md = markdown.Markdown(post.body,
+                                      extensions=[
+                                          'markdown.extensions.extra',
+                                          'markdown.extensions.codehilite',
+                                          TocExtension(slugify=slugify),
+                                      ])
+        '''
+        TocExtension 在实例化时其 slugify 参数可以接受一个函数作为参数，
+        这个函数将被用于处理标题的锚点值. Markdown 内置的处理方法不能处理中文标题，
+        所以使用了 django.utils.text 中的 slugify 方法，该方法可以很好地处理中文
+        '''
+        '''
+        'markdown.extensions.codehilite' 是代码高亮拓展
+        'markdown.extensions.toc' 是自动生成目录的拓展
+        在文中插入目录, 方法是在书写 Markdown 文本时，在想生成目录的地方插入 [TOC] 标记即可
+        '''
+        # 在侧边栏插入一个目录
+        post.body = md.convert(post.body)
+        post.toc = md.toc
+        return post
+
+    def get_context_data(self, **kwargs):
+        # 覆写 get_context_data 的目的是因为除了将 post 传递给模板外, 还要把评论表单、post 下的评论列表传递给模板
+        context = super(PostDetailView, self).get_context_data(**kwargs)
+        form = CommentForm()
+        comment_list = self.object.comment_set.all()
+        context.update({
+            'form': form,
+            'comment_list': comment_list
+        })
+        return context
+# def detail(request, pk):
+#     post = get_object_or_404(models.Post, pk=pk)
+#     # 导入的 get_object_or_404 方法，其作用就是当传入的 pk 对应的 Post 在数据库存在时，就返回对应的 post，如果不存在，就给用户返回一个 404 错误，表明用户请求的文章不存在
+#     # print(post,'!!!!!!!')
+#
+#     # 阅读量 +1
+#     post.increase_views()
+#
+#     # 把 Markdown 文本转为 HTML 文本再传递给模板
+#     # pip install markdown | pip install pygments
+#     post.body = markdown.markdown(post.body, extensions=[
+#         'markdown.extensions.extra',
+#         'markdown.extensions.codehilite',
+#         'markdown.extensions.toc',
+#     ])
+#     # https://www.jianshu.com/p/1e402922ee32/
+#     # https://www.appinn.com/markdown/
+#     form  = CommentForm()
+#     comment_list = post.comment_set.all()
+#     context = {'post':post, 'form':form, 'comment_list':comment_list}
+#
+#     return render(request, 'blog/detail.html', context=context)
 
 class ArchivesView(IndexView):
     def get_queryset(self):
