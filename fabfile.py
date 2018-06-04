@@ -25,3 +25,4 @@ def deploy():
         """.format(source_folder))
     sudo('restart gunicorn-demo.charon.me')
     sudo('service nginx reload')
+
