@@ -27,6 +27,8 @@ class Post(models.Model):
     tags = models.ManyToManyField(Tag,blank=True,null=True)
 
     author = models.ForeignKey(User,on_delete=models.CASCADE)
+
+    views = models.PositiveIntegerField(default=0)  # 记录阅读量
     def __str__(self):
         return self.title
     # 自定义 get_absolute_url 方法, 为了方便地生成URL
@@ -38,4 +40,8 @@ class Post(models.Model):
 
     class Meta:
         ordering = ['-created_time','title']
+
+    def increase_views(self):
+        self.views += 1
+        self.save(update_fields=['views'])
 

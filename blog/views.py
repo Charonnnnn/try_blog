@@ -13,6 +13,10 @@ def index(request):
 def detail(request, pk):
     post = get_object_or_404(models.Post, pk=pk)
     # 导入的 get_object_or_404 方法，其作用就是当传入的 pk 对应的 Post 在数据库存在时，就返回对应的 post，如果不存在，就给用户返回一个 404 错误，表明用户请求的文章不存在
+    # print(post,'!!!!!!!')
+
+    # 阅读量 +1
+    post.increase_views()
 
     # 把 Markdown 文本转为 HTML 文本再传递给模板
     # pip install markdown | pip install pygments

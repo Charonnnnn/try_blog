@@ -1,4 +1,5 @@
-from fabric.api import env, run
+from fabric.api import env
+from fabric.api import run
 from fabric.operations import sudo
 
 GIT_REPO = "https://github.com/Charonnnnn/try_blog.git"
