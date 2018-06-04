@@ -189,4 +189,11 @@ class CategoryView(IndexView):
 #     return render(request,'blog/index.html',context={'post_list': post_list})
 
 
+class TagView(ListView):
+    model = models.Post
+    template_name = 'blog/index.html'
+    context_object_name = 'post_list'
 
+    def get_queryset(self):
+        tag = get_object_or_404(models.Tag, pk=self.kwargs.get('pk'))
+        return super(TagView, self).get_queryset().filter(tags=tag)

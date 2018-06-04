@@ -20,3 +20,6 @@ def get_categories():
     # 使用 filter 方法把 num_posts 的值小于 0 的分类过滤掉
     return models.Category.objects.annotate(num_posts=Count('post')).filter(num_posts__gte=0)
 
+@register.simple_tag
+def get_tags():
+    return models.Tag.objects.annotate(num_posts=Count('post')).filter(num_posts__gte=0)
