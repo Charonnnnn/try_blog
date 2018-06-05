@@ -8,14 +8,17 @@ from markdown.extensions.toc import TocExtension
 from comments.forms import CommentForm
 
 from django.views.generic import ListView,DetailView
+
+
+# def index(request):
+#     post_list = models.Post.objects.all()
+#     return render(request, 'blog/index.html', context={'post_list': post_list})
 class IndexView(ListView):
     model = models.Post
     template_name = 'blog/index.html'
     context_object_name = 'post_list'
-    paginate_by = 2
-# def index(request):
-#     post_list = models.Post.objects.all()
-#     return render(request, 'blog/index.html', context={'post_list': post_list})
+    paginate_by = 8
+
     def get_context_data(self, **kwargs):
         """
         在视图函数中将模板变量传递给模板是通过给 render 函数的 context 参数传递一个字典实现的，
@@ -24,16 +27,13 @@ class IndexView(ListView):
         在类视图中，这个需要传递的模板变量字典是通过 get_context_data 获得的，
         所以我们复写该方法，以便我们能够自己再插入一些我们自定义的模板变量进去。
         """
-
         # 首先获得父类生成的传递给模板的字典。
         context = super().get_context_data(**kwargs)
-
         # 父类生成的字典中已有 paginator、page_obj、is_paginated 这三个模板变量，
         # paginator 是 Paginator 的一个实例，
         # page_obj 是 Page 的一个实例，
         # is_paginated 是一个布尔变量，用于指示是否已分页。
         # 例如如果规定每页 10 个数据，而本身只有 5 个数据，其实就用不着分页，此时 is_paginated=False。
-        # 关于什么是 Paginator，Page 类在 Django Pagination 简单分页：http://zmrenwu.com/post/34/ 中已有详细说明。
         # 由于 context 是一个字典，所以调用 get 方法从中取出某个键对应的值。
         paginator = context.get('paginator')
         page = context.get('page_obj')
@@ -191,6 +191,7 @@ class PostDetailView(DetailView):
         post.toc = md.toc
         return post
 
+    # 方法返回的值是一个字典, 传给模板
     def get_context_data(self, **kwargs):
         # 覆写 get_context_data 的目的是因为除了将 post 传递给模板外, 还要把评论表单、post 下的评论列表传递给模板
         context = super(PostDetailView, self).get_context_data(**kwargs)
@@ -236,7 +237,11 @@ class ArchivesView(IndexView):
 #                                            )
 #     return render(request,'blog/index.html', context={'post_list': post_list})
 
-class CategoryView(IndexView):
+class CategoryView(ListView):
+    model = models.Post
+    template_name = 'blog/index.html'
+    context_object_name = 'post_list'
+
     def get_queryset(self):
         cate = get_object_or_404(models.Category, pk=self.kwargs.get('pk'))
         return super(CategoryView, self).get_queryset().filter(category=cate)

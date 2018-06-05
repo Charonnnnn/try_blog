@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'blog.apps.BlogConfig',
     'comments.apps.CommentsConfig',
-    'haystack',
+    'blog.apps.BlogConfig',
+    'haystack.apps.HaystackConfig',
 ]
 
 MIDDLEWARE = [
