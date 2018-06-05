@@ -19,4 +19,6 @@ urlpatterns = [
     re_path('category/(?P<pk>[0-9]+)/', views.CategoryView.as_view(), name='category'),
 
     re_path('tag/(?P<pk>[0-9]+)/', views.TagView.as_view(), name='tag'),
+
+    path('search/', views.search, name='search'),
 ]
