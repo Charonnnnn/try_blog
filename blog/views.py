@@ -23,9 +23,9 @@ class IndexView(ListView):
         """
         在视图函数中将模板变量传递给模板是通过给 render 函数的 context 参数传递一个字典实现的，
         例如 render(request, 'blog/index.html', context={'post_list': post_list})，
-        这里传递了一个 {'post_list': post_list} 字典给模板。
+        这里传递了一个 {'post_list': post_list} 字典给模板
         在类视图中，这个需要传递的模板变量字典是通过 get_context_data 获得的，
-        所以我们复写该方法，以便我们能够自己再插入一些我们自定义的模板变量进去。
+        所以复写该方法，以便能够自己再插入一些自定义的模板变量进去。
         """
         # 首先获得父类生成的传递给模板的字典。
         context = super().get_context_data(**kwargs)
@@ -39,7 +39,7 @@ class IndexView(ListView):
         page = context.get('page_obj')
         is_paginated = context.get('is_paginated')
 
-        # 调用自己写的 pagination_data 方法获得显示分页导航条需要的数据，见下方。
+        # 调用自己写的 pagination_data 方法获得显示分页导航条需要的数据
         pagination_data = self.pagination_data(paginator, page, is_paginated)
 
         # 将分页导航条的模板变量更新到 context 中，注意 pagination_data 方法返回的也是一个字典。
